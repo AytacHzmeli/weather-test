@@ -3,10 +3,12 @@ package com.bwap.weatherapp.WeatherApp.view;
 import com.bwap.weatherapp.WeatherApp.controller.WeatherService;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ClassResource;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.hibernate.validator.constraints.URL;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,23 +27,24 @@ public class MainView extends UI {
     private Label location ;
     private Label currentTemp;
     private Label weatherDescription;
-    private Label weatherMin;
-    private Label weatherMax;
     private Label pressureLabel;
     private Label humidityLabel;
     private Label windSpeedLabel;
     private Label feelsLike;
-    private Image iconImg;
+    private  Label cloudLabel;
     private HorizontalLayout dashboard;
     private HorizontalLayout mainDescriptionLayout;
-    private Image logo;
-    private HorizontalLayout footer;
+    private Label lastUpdateLabel;
+    private Image iconImg;
+
+
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         mainLayout();
         setHeader();
         setLogo();
+
         setForm();
         dashboardTitle();
         dashboardDetails();
@@ -67,7 +70,7 @@ public class MainView extends UI {
             weatherService.setUnit("");
             unitSelect.setValue("F");
             defaultUnit="\u00b0"+"F";
-            location.setValue("Suanda "+city+" hava durumu");
+            location.setValue("Suan "+city+" hava durumu");
             JSONObject mainObject= weatherService.returnCurrentInfo();
             int temp = mainObject.getInt("temp_f");
             currentTemp.setValue(temp + defaultUnit);
@@ -75,14 +78,17 @@ public class MainView extends UI {
             weatherService.setUnit("");
             defaultUnit="\u00b0"+"C";
             unitSelect.setValue("C");
-            location.setValue("Suanda "+city+" hava durumu");
+            location.setValue("Suan "+city+" hava durumu");
             JSONObject mainObject= weatherService.returnCurrentInfo();
             int temp = mainObject.getInt("temp_c");
             currentTemp.setValue(temp + defaultUnit);
         }
 
-        //yapamadım
-        //weatherDescription.setValue("Acıklama: "+weatherService.returnCurrentInfo().getInt("condition"));
+
+        weatherDescription.setValue("Acıklama: "+weatherService.returnConditionInfo().getString("text"));
+        String url = weatherService.returnConditionInfo().getString("icon");
+        iconImg.setSource(new ExternalResource(url));
+
         //Updating Pressure
         pressureLabel.setValue("Basınc: "+weatherService.returnCurrentInfo().getInt("pressure_mb"));
         //Updating Humidity
@@ -91,7 +97,15 @@ public class MainView extends UI {
         //Updating Wind
         windSpeedLabel.setValue("Ruzgar : "+weatherService.returnCurrentInfo().getInt("wind_mph")+"m/s");
         //Updating Feels Like
-        feelsLike.setValue("Hissedilen Sıcaklık : "+weatherService.returnCurrentInfo().getDouble("feelslike_c"));
+        if(unitSelect.getValue().equals("F")){
+            feelsLike.setValue("Hissedilen Sıcaklık : "+weatherService.returnCurrentInfo().getDouble("feelslike_f"));
+        }else {
+            feelsLike.setValue("Hissedilen Sıcaklık : " + weatherService.returnCurrentInfo().getDouble("feelslike_c"));
+        }
+        //Updating cloud
+        cloudLabel.setValue("Bulut : " +weatherService.returnCurrentInfo().getDouble("cloud"));
+        //
+        lastUpdateLabel.setValue("Son Güncelleme : " +weatherService.returnCurrentInfo().getString("last_updated"));
 
 
 
@@ -139,6 +153,7 @@ public class MainView extends UI {
         mainLayout.addComponents(logo);
     }
     private void mainLayout() {
+        iconImg= new Image();
         mainLayout = new VerticalLayout();
         mainLayout.setWidth("100%");
         mainLayout.setSpacing(true);
@@ -164,7 +179,7 @@ public class MainView extends UI {
 
 
         //sehir lokasyonu
-        location = new Label("Suanda  : ");
+        location = new Label("");
         location.addStyleName(ValoTheme.LABEL_H2);
         location.addStyleName(ValoTheme.LABEL_LIGHT);
 
@@ -175,7 +190,7 @@ public class MainView extends UI {
         currentTemp.setStyleName(ValoTheme.LABEL_BOLD);
         currentTemp.setStyleName(ValoTheme.LABEL_H1);
 
-        dashboard.addComponents(location,currentTemp);
+        dashboard.addComponents(location,iconImg,currentTemp);
         mainLayout.addComponents(dashboard);
 
 
@@ -211,6 +226,12 @@ public class MainView extends UI {
 
         feelsLike = new Label("Hissedilen : ");
         pressureLayout.addComponents(feelsLike);
+
+        cloudLabel = new Label("Bulut : ");
+        pressureLayout.addComponents(cloudLabel);
+
+        lastUpdateLabel = new Label("Son Güncelleme : ");
+        pressureLayout.addComponents(lastUpdateLabel);
 
 
         mainDescriptionLayout.addComponents(destiptionlayout,pressureLayout);

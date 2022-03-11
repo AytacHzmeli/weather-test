@@ -21,7 +21,7 @@ public class WeatherService {
 
 
     public JSONObject getWeather(){
-        client = new OkHttpClient();  //using OKHTTP dependency . You have to add this mannually form OKHTTP website
+        client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url("https://api.weatherapi.com/v1/current.json?key=2986700aaab44dc38ba142514220303&q="+getCityName()+"&aqi=no")
                 .build();
@@ -40,6 +40,13 @@ public class WeatherService {
         JSONObject currentInfo = getWeather().getJSONObject("current");
         return currentInfo;
     }
+
+    public JSONObject returnConditionInfo() throws JSONException {
+        JSONObject currentInfo = getWeather().getJSONObject("current");
+        JSONObject conditionInfo = currentInfo.getJSONObject("condition");
+        return conditionInfo;
+    }
+
 
     public String getCityName() {
         return CityName;
